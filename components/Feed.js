@@ -27,10 +27,10 @@ const Feed = () => {
                 Home
                 <HiOutlineSparkles />
             </div>
-            <Input/>
-           {posts.map((post)=>(
-            <Post key={post.id} id={post.id} post={post.data()}/>
-           ))}
+            <Input />
+            {posts.map((post) => (
+                <Post key={post.id} id={post.id} post={post.data()} />
+            ))}
         </div>
     )
 }

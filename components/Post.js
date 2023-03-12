@@ -1,4 +1,4 @@
-import { deleteDoc, setDoc, doc, onSnapshot, collection } from 'firebase/firestore'
+import { deleteDoc, setDoc, doc, onSnapshot, collection, query, orderBy } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useRouter } from 'next/router'
 import React, { useContext, useEffect, useState } from 'react'
@@ -8,6 +8,7 @@ import { RiDeleteBin5Fill } from 'react-icons/ri'
 import Moment from 'react-moment'
 import { useSession } from 'next-auth/react'
 import { AppContext } from '@/contexts/AppContext'
+import {FaReTweet} from 'react-icons/fa'
 
 
 const Post = ({ id, post }) => {
@@ -15,20 +16,35 @@ const Post = ({ id, post }) => {
     const [likes, setLikes] = useState([])
     const [liked, setLiked] = useState(false)
     const [comments, setComments] = useState([])
-
     const router = useRouter()
-    const { data: session } = useSession()
 
+    const { data: session } = useSession()
     const [appContext, setAppContext] = useContext(AppContext)
+
+    // useEffect for like
 
     useEffect(() =>
         onSnapshot(collection(db, "posts", id, "likes"), (snapshot) =>
             setLikes(snapshot.docs)), [db, id]
     )
 
-    useEffect(()=>{
-        setLiked(likes.findIndex((like)=> like.id === session?.user?.uid) !== -1)
+    useEffect(() => {
+        setLiked(likes.findIndex((like) => like.id === session?.user?.uid) !== -1)
     })
+
+    // useEffect for comment
+
+    useEffect(() =>
+        onSnapshot(
+            query(
+                collection(db, "posts", id, "comments"),
+                orderBy("timestamp", "desc")
+            ),
+            (snapshot) => setComments(snapshot.docs)
+        ), [db, id]
+    )
+
+    // like post function
 
     const likePost = async () => {
         if (liked) {
@@ -39,6 +55,19 @@ const Post = ({ id, post }) => {
             })
         }
     }
+
+    // comment modal function
+
+    const openModal = () => {
+        setAppContext({
+            ...appContext,
+            isModalOpen: true,
+            post,
+            postId: id
+        })
+    }
+
+    
 
     return (
         <div className=' mt-4 border-t border-gray-500 px-4 pt-6 pb-4 cursor-pointer'
@@ -67,15 +96,15 @@ const Post = ({ id, post }) => {
                             <BsChat className=' hoverEffect w-7 h-7 p-1'
                                 onClick={(e) => {
                                     e.stopPropagation()
-                                    // openModal()
+                                    openModal()
                                 }} />
-                            {/* {comments.length > 0 && (<span className=' text-sm'>
-                            {comments.length}</span>)} */}
+                            {comments.length > 0 && (<span className=' text-sm'>
+                            {comments.length}</span>)}
                         </div>
                         {session.user.uid !== post?.id ? (
-                            <FaRetweet className=' hoverEffect w-7 h-7 p-1' />
+                            <FaReTweet className='hoverEffect w-7 h-7 p-1' />
                         ) : (
-                            <RiDeleteBin5Fill className=' hoverEffect w-7 h-7 p-1'
+                            <RiDeleteBin5Fill className='hoverEffect w-7 h-7 p-1'
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     deleteDoc(doc(db, "posts", id));

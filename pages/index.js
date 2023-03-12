@@ -1,15 +1,20 @@
-import Feed from '../components/Feed'
+import Feed from '@/components/Feed'
 import Login from '@/components/Login'
 import SideBar from '@/components/SideBar'
 import { useSession } from 'next-auth/react'
 import Head from 'next/head'
+import { AppContext } from '@/contexts/AppContext'
+import { useContext } from 'react'
+import Modal from '@/components/Modal'
+import Trending from '@/components/Trending'
 
 
 export default function Home() {
 
-  const {data: session} = useSession()
+  const { data: session } = useSession()
+  const [appContext] = useContext(AppContext)
 
-  if(!session) return <Login />
+  if (!session) return <Login />
 
   return (
     <>
@@ -20,10 +25,13 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className=' relative max-w-[1400px] mx-auto'>
-        <SideBar/>
+        <SideBar />
         <div className=' flex gap-6' >
-          <Feed/>
+          <Feed />
+          <Trending/>
+          {appContext?.isModalOpen && <Modal />}
         </div>
+        
       </main>
     </>
   )
